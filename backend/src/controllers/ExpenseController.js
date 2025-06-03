@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const Expense = require('../models/Expense');
+const sequelize = require('sequelize');
 
 class ExpenseController {
   async store(req, res) {
@@ -31,20 +32,17 @@ class ExpenseController {
     try {
       const { month } = req.query;
       const userId = req.userId;
-
-      const startDate = new Date(month);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-
+      const [year, monthNum] = month.split('-');
+      const monthInt = parseInt(monthNum, 10);
       const expenses = await Expense.findAll({
         where: {
           userId,
           referenceMonth: {
-            [Op.between]: [startDate, endDate],
+            [Op.like]: `${month}%`,
           },
         },
         order: [['createdAt', 'DESC']],
       });
-
       return res.json(expenses);
     } catch (error) {
       return res.status(400).json({ error: 'Falha ao buscar despesas' });
