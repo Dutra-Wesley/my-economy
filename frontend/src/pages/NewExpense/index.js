@@ -56,14 +56,30 @@ export default function NewExpense({ navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
-      setDescription('');
-      setValue('');
-      setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
-      setHistoryMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
-      setEditing(false);
-      setEditingId(null);
+      if (!editing) {
+        const initialMonth = selectedMonth || format(new Date(), 'yyyy-MM');
+        setDescription('');
+        setValue('');
+        setReferenceMonth(initialMonth);
+        setHistoryMonth(initialMonth);
+      }
     }, [selectedMonth])
   );
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      setDescription('');
+      setValue('');
+      setReferenceMonth(format(new Date(), 'yyyy-MM'));
+      setHistoryMonth(format(new Date(), 'yyyy-MM'));
+      setEditing(false);
+      setEditingId(null);
+      if (route.params?.selectedMonth) {
+        navigation.setParams({ selectedMonth: undefined });
+      }
+    });
+    return unsubscribe;
+  }, [navigation, route.params]);
 
   async function fetchExpenses() {
     setLoading(true);
@@ -95,6 +111,13 @@ export default function NewExpense({ navigation }) {
           referenceMonth,
         });
         Alert.alert('Sucesso', 'Despesa atualizada com sucesso');
+        setDescription('');
+        setValue('');
+        setReferenceMonth(referenceMonth);
+        setHistoryMonth(referenceMonth);
+        setEditing(false);
+        setEditingId(null);
+        fetchExpenses();
       } else {
         await api.post('/expenses', {
           description,
@@ -102,14 +125,14 @@ export default function NewExpense({ navigation }) {
           referenceMonth,
         });
         Alert.alert('Sucesso', 'Despesa cadastrada com sucesso');
+        setDescription('');
+        setValue('');
+        setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
+        setHistoryMonth(referenceMonth);
+        setEditing(false);
+        setEditingId(null);
+        fetchExpenses();
       }
-      setDescription('');
-      setValue('');
-      setReferenceMonth(format(new Date(), 'yyyy-MM'));
-      setHistoryMonth(referenceMonth);
-      setEditing(false);
-      setEditingId(null);
-      fetchExpenses();
     } catch (error) {
       Alert.alert('Erro', error.response?.data?.error || 'Erro ao cadastrar despesa');
       setEditing(false);
@@ -149,7 +172,7 @@ export default function NewExpense({ navigation }) {
 
     setDescription(expense.description);
     setValue(String(expense.value));
-    setReferenceMonth(expense.referenceMonth);
+    setReferenceMonth(expense.referenceMonth.slice(0, 7));
     setEditing(true);
     setEditingId(expense.id);
   }
@@ -175,7 +198,10 @@ export default function NewExpense({ navigation }) {
         <View style={styles.pickerBox}>
           <Picker
             selectedValue={referenceMonth}
-            onValueChange={setReferenceMonth}
+            onValueChange={(value) => {
+              setReferenceMonth(value);
+              setHistoryMonth(value);
+            }}
             style={styles.picker}
             dropdownIconColor="#222"
           >
