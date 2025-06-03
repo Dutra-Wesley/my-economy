@@ -177,25 +177,27 @@ export default function Home({ navigation }) {
           </View>
           {statusCard.showProgress && (
             <>
-              <Text style={styles.progressLabel}>Progresso</Text>
-              <View style={styles.progressHeader}>
-                <Text style={styles.progressValue}>
+              <View style={styles.progressHeaderRow}>
+                <Text style={styles.progressLabelBold}>Progresso</Text>
+                <Text style={styles.progressValueBold}>
                   R$ {monthlyData.totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}/R$ {Number(monthlyData.limit.value).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
                 </Text>
               </View>
               <View style={styles.progressBarFullWidth}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${Math.min(
-                        (monthlyData.totalExpenses / Number(monthlyData.limit.value)) * 100,
-                        100
-                      )}%`,
-                      backgroundColor: '#2ecc71',
-                    },
-                  ]}
-                />
+                <View style={styles.progressBarBackground}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${Math.min(
+                          (monthlyData.totalExpenses / Number(monthlyData.limit.value)) * 100,
+                          100
+                        )}%`,
+                        backgroundColor: '#4CC95B',
+                      },
+                    ]}
+                  />
+                </View>
               </View>
             </>
           )}
@@ -292,7 +294,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 2,
+    width: '90%',
+    alignSelf: 'center',
   },
   progressTitle: {
     fontSize: 18,
@@ -301,7 +305,12 @@ const styles = StyleSheet.create({
   },
   progressValue: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#95a5a6',
+    fontWeight: 'normal',
+    alignSelf: 'flex-end',
+    marginBottom: 0,
+    marginTop: 0,
+    marginRight: 0,
   },
   progressBar: {
     height: 10,
@@ -312,23 +321,28 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     backgroundColor: '#2ecc71',
-    borderRadius: 5,
+    borderRadius: 9,
   },
   expenseButton: {
-    margin: 20,
+    marginTop: 0,
+    marginBottom: 10,
     backgroundColor: '#2ecc71',
-    padding: 15,
-    borderRadius: 10,
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    width: '90%',
+    alignSelf: 'center',
+    elevation: 2,
   },
   expenseButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   emptyContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   greetingBox: {
     width: '85%',
@@ -350,22 +364,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   pickerBox: {
-    width: '100%',
-    alignSelf: 'center',
-    marginTop: 4,
-    marginBottom: 0,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f1f3f4',
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     height: 56,
     justifyContent: 'center',
+    marginBottom: 15,
+    width: '90%',
+    alignSelf: 'center',
+    marginTop: 4,
   },
   picker: {
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    width: '100%',
     height: 56,
+    width: '100%',
     fontSize: 16,
     paddingHorizontal: 0,
     marginLeft: 0,
@@ -374,14 +386,20 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: '#4CC95B',
-    borderRadius: 16,
-    paddingVertical: 32,
-    paddingHorizontal: 12,
+    borderRadius: 24,
+    paddingVertical: 28,
+    paddingHorizontal: 0,
     alignItems: 'center',
-    width: '85%',
-    marginBottom: 24,
+    width: '90%',
+    maxWidth: 320,
+    marginBottom: 18,
     marginTop: 10,
     alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 2,
+    elevation: 2,
   },
   emptyEmoji: {
     fontSize: 54,
@@ -398,9 +416,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CC95B',
     borderRadius: 14,
     paddingVertical: 14,
-    paddingHorizontal: 0,
     alignItems: 'center',
-    width: '85%',
+    width: '90%',
     alignSelf: 'center',
     marginTop: 0,
   },
@@ -417,29 +434,36 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 10,
     marginBottom: 16,
+    paddingHorizontal: 0,
   },
   statusCard: {
     backgroundColor: '#4CC95B',
-    borderRadius: 16,
-    paddingVertical: 32,
-    paddingHorizontal: 12,
+    borderRadius: 24,
+    paddingVertical: 28,
+    paddingHorizontal: 0,
     alignItems: 'center',
-    width: '100%',
-    maxWidth: 400,
-    marginBottom: 24,
+    width: '90%',
+    maxWidth: 320,
+    marginBottom: 18,
     alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 2,
+    elevation: 2,
   },
   statusEmoji: {
-    fontSize: 54,
+    fontSize: 64,
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 10,
   },
   statusMessage: {
     color: '#222',
-    fontSize: 18,
-    marginTop: 2,
+    fontSize: 20,
+    marginTop: 0,
     textAlign: 'center',
     fontWeight: 'bold',
+    marginBottom: 0,
   },
   statusValue: {
     color: '#222',
@@ -448,22 +472,42 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
   },
-  progressLabel: {
+  progressHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '90%',
+    alignSelf: 'center',
+    marginBottom: 6,
+    marginTop: 0,
+  },
+  progressLabelBold: {
     fontWeight: 'bold',
     color: '#222',
-    marginLeft: 8,
-    marginBottom: 2,
-    marginTop: 0,
+    fontSize: 15,
+  },
+  progressValueBold: {
+    fontWeight: 'bold',
+    color: '#222',
     fontSize: 15,
   },
   progressBarFullWidth: {
-    width: '100%',
-    maxWidth: 400,
-    marginBottom: 16,
+    width: '90%',
     alignSelf: 'center',
-    height: 10,
-    backgroundColor: '#ecf0f1',
-    borderRadius: 5,
+    marginBottom: 16,
+    height: 28,
+    backgroundColor: 'transparent',
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 28,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 14,
     overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#4CC95B',
+    borderRadius: 14,
   },
 }); 
