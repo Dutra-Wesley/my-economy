@@ -141,7 +141,7 @@ export default function Home({ navigation }) {
             <Text style={styles.emptyEmoji}>😴</Text>
             <Text style={styles.emptyText}>Progresso não encontrado</Text>
           </View>
-          <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('MonthlyLimit')}>
+          <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('MonthlyLimit', { selectedMonth: currentMonth })}>
             <Text style={styles.startButtonText}>COMEÇAR</Text>
           </TouchableOpacity>
         </View>

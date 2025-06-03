@@ -11,13 +11,15 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { format } from 'date-fns';
 import api from '../../services/api';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 
 export default function MonthlyLimit({ navigation }) {
+  const route = useRoute();
+  const { selectedMonth } = route.params || {};
   const [value, setValue] = useState('');
-  const [referenceMonth, setReferenceMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [referenceMonth, setReferenceMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM'));
   const [months, setMonths] = useState([]);
-  const [queryMonth, setQueryMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [queryMonth, setQueryMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM'));
   const [limit, setLimit] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -49,10 +51,10 @@ export default function MonthlyLimit({ navigation }) {
   useFocusEffect(
     React.useCallback(() => {
       setValue('');
-      setReferenceMonth(format(new Date(), 'yyyy-MM'));
-      setQueryMonth(format(new Date(), 'yyyy-MM'));
+      setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
+      setQueryMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
       setEditing(false);
-    }, [])
+    }, [selectedMonth])
   );
 
   async function fetchLimit() {
