@@ -21,6 +21,8 @@ export default function NewExpense({ navigation }) {
   const [months, setMonths] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     // Gera 6 meses anteriores, o mês atual e 12 meses futuros para o Picker
@@ -46,6 +48,8 @@ export default function NewExpense({ navigation }) {
       setValue('');
       setReferenceMonth(format(new Date(), 'yyyy-MM'));
       setHistoryMonth(format(new Date(), 'yyyy-MM'));
+      setEditing(false);
+      setEditingId(null);
     }, [])
   );
 
@@ -66,19 +70,32 @@ export default function NewExpense({ navigation }) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
-      await api.post('/expenses', {
-        description,
-        value: Number(value),
-        referenceMonth,
-      });
-      Alert.alert('Sucesso', 'Despesa cadastrada com sucesso');
+      if (editing && editingId) {
+        await api.put(`/expenses/${editingId}`, {
+          description,
+          value: Number(value),
+          referenceMonth,
+        });
+        Alert.alert('Sucesso', 'Despesa atualizada com sucesso');
+      } else {
+        await api.post('/expenses', {
+          description,
+          value: Number(value),
+          referenceMonth,
+        });
+        Alert.alert('Sucesso', 'Despesa cadastrada com sucesso');
+      }
       setDescription('');
       setValue('');
       setReferenceMonth(format(new Date(), 'yyyy-MM'));
-      setHistoryMonth(referenceMonth); // Atualiza histórico para o mês cadastrado
+      setHistoryMonth(referenceMonth);
+      setEditing(false);
+      setEditingId(null);
       fetchExpenses();
     } catch (error) {
       Alert.alert('Erro', error.response?.data?.error || 'Erro ao cadastrar despesa');
+      setEditing(false);
+      setEditingId(null);
     }
   }
 
@@ -98,11 +115,12 @@ export default function NewExpense({ navigation }) {
     ]);
   }
 
-  // Função de editar pode ser implementada conforme a lógica do app
   function handleEdit(expense) {
     setDescription(expense.description);
     setValue(String(expense.value));
     setReferenceMonth(expense.referenceMonth);
+    setEditing(true);
+    setEditingId(expense.id);
   }
 
   return (
