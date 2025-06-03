@@ -55,7 +55,7 @@ class MonthlyLimitController {
         where: {
           userId,
           referenceMonth: {
-            [Op.between]: [startDate, endDate],
+            [Op.like]: `${month}%`,
           },
         },
       });
@@ -68,7 +68,7 @@ class MonthlyLimitController {
         where: {
           userId,
           referenceMonth: {
-            [Op.between]: [startDate, endDate],
+            [Op.like]: `${month}%`,
           },
         },
       });
