@@ -24,6 +24,16 @@ export default function NewExpense({ navigation }) {
   const [editing, setEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
+  function isMonthValid(month) {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const [year, monthNum] = month.split('-');
+    
+    return Number(year) > currentYear || 
+           (Number(year) === currentYear && Number(monthNum) - 1 >= currentMonth);
+  }
+
   useEffect(() => {
     // Gera 6 meses anteriores, o mês atual e 12 meses futuros para o Picker
     const arr = [];
@@ -70,6 +80,12 @@ export default function NewExpense({ navigation }) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
+
+      if (!isMonthValid(referenceMonth)) {
+        Alert.alert('Erro', 'Não é possível cadastrar ou editar despesas de meses anteriores');
+        return;
+      }
+
       if (editing && editingId) {
         await api.put(`/expenses/${editingId}`, {
           description,
@@ -100,6 +116,14 @@ export default function NewExpense({ navigation }) {
   }
 
   async function handleDelete(id) {
+    const expense = expenses.find(exp => exp.id === id);
+    if (!expense) return;
+
+    if (!isMonthValid(expense.referenceMonth)) {
+      Alert.alert('Erro', 'Não é possível excluir despesas de meses anteriores');
+      return;
+    }
+
     Alert.alert('Excluir', 'Deseja realmente excluir esta despesa?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -116,6 +140,11 @@ export default function NewExpense({ navigation }) {
   }
 
   function handleEdit(expense) {
+    if (!isMonthValid(expense.referenceMonth)) {
+      Alert.alert('Erro', 'Não é possível editar despesas de meses anteriores');
+      return;
+    }
+
     setDescription(expense.description);
     setValue(String(expense.value));
     setReferenceMonth(expense.referenceMonth);

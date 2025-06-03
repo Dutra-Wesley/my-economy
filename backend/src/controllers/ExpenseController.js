@@ -8,10 +8,14 @@ class ExpenseController {
       const { description, value, referenceMonth } = req.body;
       const userId = req.userId;
 
+      const [year, month] = referenceMonth.split('-');
+      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
       const currentDate = new Date();
-      const referenceDate = new Date(referenceMonth);
 
-      if (referenceDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+      const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+
+      if (referenceYearMonth < currentYearMonth) {
         return res.status(400).json({ error: 'Não é possível cadastrar despesas para meses anteriores' });
       }
 
@@ -63,10 +67,14 @@ class ExpenseController {
         return res.status(404).json({ error: 'Despesa não encontrada' });
       }
 
+      const [year, month] = referenceMonth.split('-');
+      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
       const currentDate = new Date();
-      const referenceDate = new Date(referenceMonth);
 
-      if (referenceDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+      const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+
+      if (referenceYearMonth < currentYearMonth) {
         return res.status(400).json({ error: 'Não é possível editar despesas de meses anteriores' });
       }
 
@@ -95,10 +103,14 @@ class ExpenseController {
         return res.status(404).json({ error: 'Despesa não encontrada' });
       }
 
+      const [year, month] = expense.referenceMonth.split('-');
+      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
       const currentDate = new Date();
-      const referenceDate = new Date(expense.referenceMonth);
 
-      if (referenceDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+      const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+
+      if (referenceYearMonth < currentYearMonth) {
         return res.status(400).json({ error: 'Não é possível excluir despesas de meses anteriores' });
       }
 

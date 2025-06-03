@@ -22,6 +22,12 @@ export default function MonthlyLimit({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
 
+  function isMonthValid(month) {
+    const current = new Date();
+    const currentStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+    return month >= currentStr;
+  }
+
   useEffect(() => {
     // Gera 6 meses anteriores, o mês atual e 12 meses futuros para o Picker
     const arr = [];
@@ -66,6 +72,12 @@ export default function MonthlyLimit({ navigation }) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
+
+      if (!isMonthValid(referenceMonth)) {
+        Alert.alert('Erro', 'Não é possível cadastrar ou editar limites de meses anteriores');
+        return;
+      }
+
       const limitId = limit && (limit.limit ? limit.limit.id : limit.id);
       if (editing && limitId) {
         await api.put(`/monthly-limits/${limitId}`, {
@@ -94,6 +106,13 @@ export default function MonthlyLimit({ navigation }) {
 
   async function handleDelete() {
     if (!limit) return;
+
+    const limitMonth = limit.limit ? limit.limit.referenceMonth : limit.referenceMonth;
+    if (!isMonthValid(limitMonth)) {
+      Alert.alert('Erro', 'Não é possível excluir limites de meses anteriores');
+      return;
+    }
+
     Alert.alert('Excluir', 'Deseja realmente excluir este limite?', [
       { text: 'Cancelar', style: 'cancel' },
       {
@@ -115,6 +134,13 @@ export default function MonthlyLimit({ navigation }) {
 
   function handleEdit() {
     if (!limit) return;
+
+    const limitMonth = limit.limit ? limit.limit.referenceMonth : limit.referenceMonth;
+    if (!isMonthValid(limitMonth)) {
+      Alert.alert('Erro', 'Não é possível editar limites de meses anteriores');
+      return;
+    }
+
     setValue(String((limit.limit ? limit.limit.value : limit.value)));
     setReferenceMonth((limit.limit ? limit.limit.referenceMonth : limit.referenceMonth).slice(0, 7));
     setEditing(true);
@@ -135,7 +161,9 @@ export default function MonthlyLimit({ navigation }) {
         <View style={styles.pickerBox}>
           <Picker
             selectedValue={referenceMonth}
-            onValueChange={setReferenceMonth}
+            onValueChange={(itemValue) => {
+              setReferenceMonth(itemValue);
+            }}
             style={styles.picker}
             dropdownIconColor="#222"
           >

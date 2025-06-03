@@ -9,21 +9,23 @@ class MonthlyLimitController {
       const { value, referenceMonth } = req.body;
       const userId = req.userId;
 
+      const [year, month] = referenceMonth.split('-');
+      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
       const currentDate = new Date();
-      const referenceDate = new Date(referenceMonth);
 
-      if (referenceDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+      const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+
+      if (referenceYearMonth < currentYearMonth) {
         return res.status(400).json({ error: 'Não é possível cadastrar limite para meses anteriores' });
       }
 
-      const [year, monthNum] = referenceMonth.split('-');
-      const monthInt = parseInt(monthNum, 10);
       const existingLimit = await MonthlyLimit.findOne({
         where: {
           userId,
           [Op.and]: [
             sequelize.where(sequelize.fn('YEAR', sequelize.col('reference_month')), year),
-            sequelize.where(sequelize.fn('MONTH', sequelize.col('reference_month')), monthInt),
+            sequelize.where(sequelize.fn('MONTH', sequelize.col('reference_month')), month),
           ],
         },
       });
@@ -48,7 +50,6 @@ class MonthlyLimitController {
     try {
       const { month } = req.query;
       const userId = req.userId;
-      console.log('Recebido:', { month, userId });
 
       const [year, monthNum] = month.split('-');
       const monthInt = parseInt(monthNum, 10);
@@ -61,7 +62,6 @@ class MonthlyLimitController {
           ],
         },
       });
-      console.log('Limite encontrado:', limit);
 
       if (!limit) {
         return res.status(404).json({ error: 'Limite não encontrado para este mês' });
@@ -76,7 +76,6 @@ class MonthlyLimitController {
           ],
         },
       });
-      console.log('Despesas encontradas:', expenses);
 
       const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.value), 0);
       const remaining = Number(limit.value) - totalExpenses;
@@ -88,7 +87,6 @@ class MonthlyLimitController {
         status: remaining >= 0 ? 'success' : 'failure',
       });
     } catch (error) {
-      console.error('Erro no método show do MonthlyLimitController:', error);
       return res.status(400).json({ error: 'Falha ao buscar limite' });
     }
   }
@@ -107,10 +105,14 @@ class MonthlyLimitController {
         return res.status(404).json({ error: 'Limite não encontrado' });
       }
 
+      const [year, month] = referenceMonth.split('-');
+      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
       const currentDate = new Date();
-      const referenceDate = new Date(referenceMonth);
 
-      if (referenceDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+      const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+
+      if (referenceYearMonth < currentYearMonth) {
         return res.status(400).json({ error: 'Não é possível editar limite de meses anteriores' });
       }
 
@@ -138,10 +140,13 @@ class MonthlyLimitController {
         return res.status(404).json({ error: 'Limite não encontrado' });
       }
 
+      const [year, month] = limit.referenceMonth.split('-');
+      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
       const currentDate = new Date();
-      const referenceDate = new Date(limit.referenceMonth);
 
-      if (referenceDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)) {
+      const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+      if (referenceYearMonth < currentYearMonth) {
         return res.status(400).json({ error: 'Não é possível excluir limite de meses anteriores' });
       }
 
