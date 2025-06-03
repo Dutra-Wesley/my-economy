@@ -16,15 +16,15 @@ class MonthlyLimitController {
         return res.status(400).json({ error: 'Não é possível cadastrar limite para meses anteriores' });
       }
 
+      const [year, monthNum] = referenceMonth.split('-');
+      const monthInt = parseInt(monthNum, 10);
       const existingLimit = await MonthlyLimit.findOne({
         where: {
           userId,
-          referenceMonth: {
-            [Op.between]: [
-              new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1),
-              new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0),
-            ],
-          },
+          [Op.and]: [
+            sequelize.where(sequelize.fn('YEAR', sequelize.col('reference_month')), year),
+            sequelize.where(sequelize.fn('MONTH', sequelize.col('reference_month')), monthInt),
+          ],
         },
       });
 

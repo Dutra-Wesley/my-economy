@@ -66,18 +66,29 @@ export default function MonthlyLimit({ navigation }) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
-      await api.post('/monthly-limits', {
-        value: Number(value),
-        referenceMonth,
-      });
-      Alert.alert('Sucesso', 'Limite mensal cadastrado com sucesso');
+      const limitId = limit && (limit.limit ? limit.limit.id : limit.id);
+      if (editing && limitId) {
+        await api.put(`/monthly-limits/${limitId}`, {
+          value: Number(value),
+          referenceMonth,
+        });
+        Alert.alert('Sucesso', 'Limite mensal atualizado com sucesso');
+        setEditing(false);
+      } else {
+        await api.post('/monthly-limits', {
+          value: Number(value),
+          referenceMonth,
+        });
+        Alert.alert('Sucesso', 'Limite mensal cadastrado com sucesso');
+        setEditing(false);
+      }
       setValue('');
       setReferenceMonth(format(new Date(), 'yyyy-MM'));
       setQueryMonth(referenceMonth);
       fetchLimit();
-      setEditing(false);
     } catch (error) {
       Alert.alert('Erro', error.response?.data?.error || 'Erro ao cadastrar limite');
+      setEditing(false);
     }
   }
 
@@ -95,6 +106,7 @@ export default function MonthlyLimit({ navigation }) {
             fetchLimit();
           } catch {
             Alert.alert('Erro', 'Erro ao excluir limite');
+            setEditing(false);
           }
         }
       }
