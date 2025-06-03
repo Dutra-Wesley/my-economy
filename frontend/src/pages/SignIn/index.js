@@ -29,36 +29,37 @@ export default function SignIn({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Economy</Text>
-      <Text style={styles.subtitle}>Controle suas despesas</Text>
-
+      <Text style={styles.title}>ENTRAR</Text>
       <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder=""
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Senha</Text>
+          <TextInput
+            style={styles.input}
+            placeholder=""
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
         <TouchableOpacity style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.link}
           onPress={() => navigation.navigate('SignUp')}
         >
-          <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
+          <Text style={styles.linkText}>Não possui conta? Crie aqui</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -68,59 +69,65 @@ export default function SignIn({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 20,
+    backgroundColor: '#fff',
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: '#000',
     textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#7f8c8d',
-    textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 36,
   },
   form: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  inputGroup: {
+    width: 280,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+    fontSize: 15,
+    color: '#000',
+    marginLeft: 2,
   },
   input: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 5,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
+    width: '100%',
+    height: 42,
+    borderWidth: 1,
+    borderColor: '#333',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    fontSize: 15,
   },
   button: {
-    backgroundColor: '#3498db',
-    borderRadius: 5,
-    padding: 15,
+    width: 280,
+    height: 48,
+    backgroundColor: '#4CC95B',
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 18,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   link: {
-    marginTop: 15,
     alignItems: 'center',
+    marginTop: 6,
   },
   linkText: {
-    color: '#3498db',
-    fontSize: 14,
+    fontSize: 12,
+    color: '#000',
+    marginTop: 2,
   },
 }); 
