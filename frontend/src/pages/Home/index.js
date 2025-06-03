@@ -21,8 +21,15 @@ export default function Home({ navigation }) {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
+    setMonthlyData(null);
     loadMonthlyData();
   }, [currentMonth]);
+
+  useEffect(() => {
+    if (monthlyData !== null) {
+      console.log('monthlyData:', monthlyData);
+    }
+  }, [monthlyData]);
 
   async function loadMonthlyData() {
     try {
@@ -35,44 +42,72 @@ export default function Home({ navigation }) {
     }
   }
 
-  function getStatusMessage() {
-    if (!monthlyData) {
+  function getStatusCard() {
+    if (!monthlyData || !monthlyData.limit) return null;
+    const { status, remaining, totalExpenses, limit } = monthlyData;
+    const now = new Date();
+    const selected = new Date(limit.referenceMonth);
+    const isCurrentMonth = now.getFullYear() === selected.getFullYear() && now.getMonth() === selected.getMonth();
+    const isPastMonth = selected < new Date(now.getFullYear(), now.getMonth(), 1);
+    const isFutureMonth = selected > new Date(now.getFullYear(), now.getMonth(), 1);
+    // 1. Ultrapassou o limite (qualquer mês)
+    if (status === 'failure') {
       return {
-        title: 'Nenhum limite definido',
-        message: 'Defina um limite mensal para começar a controlar suas despesas',
-        type: 'info',
+        emoji: '😓',
+        message: 'Objetivo não atingido',
+        value: `-R$${Math.abs(remaining).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`,
+        color: '#4CC95B',
+        showProgress: isCurrentMonth || isFutureMonth,
       };
     }
-
-    if (monthlyData.status === 'success') {
+    // 2. Final do mês e economizou (mês passado)
+    if (status === 'success' && isPastMonth) {
       return {
-        title: 'Parabéns!',
-        message: `Você economizou R$ ${monthlyData.remaining.toFixed(2)} este mês`,
-        type: 'success',
+        emoji: '🤩',
+        message: 'Parabéns você economizou',
+        value: `R$${(totalExpenses === 0 ? Number(limit.value) : remaining).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`,
+        color: '#4CC95B',
       };
     }
-
-    return {
-      title: 'Atenção!',
-      message: `Você ultrapassou o limite em R$ ${Math.abs(monthlyData.remaining).toFixed(2)}`,
-      type: 'warning',
-    };
+    // 3. Progresso durante o mês atual ou futuro
+    if (isCurrentMonth || isFutureMonth) {
+      return {
+        emoji: '🙂',
+        message: 'Continue assim!',
+        value: '',
+        color: '#4CC95B',
+        showProgress: true,
+      };
+    }
+    // Caso não tenha limite, mostrar progresso não encontrado
+    return null;
   }
 
-  const status = getStatusMessage();
+  const statusCard = getStatusCard();
 
   // Geração dos meses para o Picker
   const months = [];
   const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  for (let i = -6; i <= 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
     months.push({
       label: format(date, "MMMM/yyyy", { locale: require('date-fns/locale/pt-BR') }),
       value: format(date, 'yyyy-MM'),
     });
   }
+  // Garante que o mês selecionado sempre aparece no Picker, sem duplicatas
+  if (currentMonth && !months.some(m => m.value === currentMonth)) {
+    const date = new Date(currentMonth + '-01');
+    months.push({
+      label: format(date, "MMMM/yyyy", { locale: require('date-fns/locale/pt-BR') }),
+      value: currentMonth,
+    });
+  }
+  // Remove duplicatas e ordena
+  const uniqueMonths = Array.from(new Map(months.map(m => [m.value, m])).values())
+    .sort((a, b) => a.value.localeCompare(b.value));
 
-  if (!monthlyData) {
+  if (!monthlyData || !monthlyData.limit || !statusCard) {
     return (
       <View style={[styles.emptyContainer, { paddingBottom: insets.bottom + 20 }]}> 
         <View style={styles.greetingBox}>
@@ -87,7 +122,7 @@ export default function Home({ navigation }) {
               style={styles.picker}
               dropdownIconColor="#222"
             >
-              {months.map((m) => (
+              {uniqueMonths.map((m) => (
                 <Picker.Item key={m.value} label={m.label.charAt(0).toUpperCase() + m.label.slice(1)} value={m.value} />
               ))}
             </Picker>
@@ -106,48 +141,53 @@ export default function Home({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Economy</Text>
-        <TouchableOpacity
-          style={styles.limitButton}
-          onPress={() => navigation.navigate('MonthlyLimit')}
+      <View style={styles.greetingBox}>
+        <Text style={styles.greeting}>Olá {user?.name?.split(' ')[0] || ''} <Text style={{fontSize:22}}>👋</Text></Text>
+        <Text style={styles.subGreeting}>É bom te ver por aqui!</Text>
+      </View>
+      <View style={styles.pickerBox}>
+        <Picker
+          selectedValue={currentMonth}
+          onValueChange={setCurrentMonth}
+          style={styles.picker}
+          dropdownIconColor="#222"
         >
-          <Text style={styles.limitButtonText}>Definir Limite</Text>
-        </TouchableOpacity>
+          {uniqueMonths.map((m) => (
+            <Picker.Item key={m.value} label={m.label.charAt(0).toUpperCase() + m.label.slice(1)} value={m.value} />
+          ))}
+        </Picker>
       </View>
-
-      <View style={[styles.card, styles[status.type]]}>
-        <Text style={styles.cardTitle}>{status.title}</Text>
-        <Text style={styles.cardMessage}>{status.message}</Text>
+      <View style={[styles.statusCard, { backgroundColor: statusCard.color }]}> 
+        <Text style={styles.statusEmoji}>{statusCard.emoji}</Text>
+        <Text style={styles.statusMessage}>{statusCard.message}</Text>
+        {statusCard.value !== '' && (
+          <Text style={styles.statusValue}>{statusCard.value}</Text>
+        )}
       </View>
-
-      {monthlyData && (
-        <View style={styles.progressContainer}>
+      {statusCard.showProgress && (
+        <>
+          <Text style={styles.progressLabel}>Progresso</Text>
           <View style={styles.progressHeader}>
-            <Text style={styles.progressTitle}>Progresso do Mês</Text>
             <Text style={styles.progressValue}>
-              R$ {monthlyData.totalExpenses.toFixed(2)} / R$ {monthlyData.limit.value.toFixed(2)}
+              R$ {monthlyData.totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}/R$ {Number(monthlyData.limit.value).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
             </Text>
           </View>
-
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
                 {
                   width: `${Math.min(
-                    (monthlyData.totalExpenses / monthlyData.limit.value) * 100,
+                    (monthlyData.totalExpenses / Number(monthlyData.limit.value)) * 100,
                     100
                   )}%`,
-                  backgroundColor:
-                    monthlyData.status === 'success' ? '#2ecc71' : '#e74c3c',
+                  backgroundColor: '#2ecc71',
                 },
               ]}
             />
           </View>
-        </View>
+        </>
       )}
-
       <TouchableOpacity
         style={styles.expenseButton}
         onPress={() => navigation.navigate('NewExpense')}
@@ -300,17 +340,23 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 4,
     marginBottom: 0,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    height: 56,
+    justifyContent: 'center',
   },
   picker: {
     backgroundColor: '#fff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    borderRadius: 5,
     width: '100%',
-    height: 44,
-    justifyContent: 'center',
-    minWidth: '100%',
-    overflow: 'visible',
+    height: 56,
+    fontSize: 16,
+    paddingHorizontal: 0,
+    marginLeft: 0,
+    marginRight: 0,
+    textAlignVertical: 'center',
   },
   emptyCard: {
     backgroundColor: '#4CC95B',
@@ -355,5 +401,43 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+  },
+  statusCard: {
+    backgroundColor: '#4CC95B',
+    borderRadius: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 24,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  statusEmoji: {
+    fontSize: 54,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  statusMessage: {
+    color: '#222',
+    fontSize: 18,
+    marginTop: 2,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  statusValue: {
+    color: '#222',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  progressLabel: {
+    fontWeight: 'bold',
+    color: '#222',
+    marginLeft: 8,
+    marginBottom: 2,
+    marginTop: 0,
+    fontSize: 15,
   },
 }); 

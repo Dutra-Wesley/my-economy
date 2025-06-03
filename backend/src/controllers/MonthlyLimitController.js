@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const MonthlyLimit = require('../models/MonthlyLimit');
 const Expense = require('../models/Expense');
+const sequelize = require('../config/database');
 
 class MonthlyLimitController {
   async store(req, res) {
@@ -47,18 +48,20 @@ class MonthlyLimitController {
     try {
       const { month } = req.query;
       const userId = req.userId;
+      console.log('Recebido:', { month, userId });
 
-      const startDate = new Date(month);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-
+      const [year, monthNum] = month.split('-');
+      const monthInt = parseInt(monthNum, 10);
       const limit = await MonthlyLimit.findOne({
         where: {
           userId,
-          referenceMonth: {
-            [Op.like]: `${month}%`,
-          },
+          [Op.and]: [
+            sequelize.where(sequelize.fn('YEAR', sequelize.col('reference_month')), year),
+            sequelize.where(sequelize.fn('MONTH', sequelize.col('reference_month')), monthInt),
+          ],
         },
       });
+      console.log('Limite encontrado:', limit);
 
       if (!limit) {
         return res.status(404).json({ error: 'Limite não encontrado para este mês' });
@@ -67,11 +70,13 @@ class MonthlyLimitController {
       const expenses = await Expense.findAll({
         where: {
           userId,
-          referenceMonth: {
-            [Op.like]: `${month}%`,
-          },
+          [Op.and]: [
+            sequelize.where(sequelize.fn('YEAR', sequelize.col('reference_month')), year),
+            sequelize.where(sequelize.fn('MONTH', sequelize.col('reference_month')), monthInt),
+          ],
         },
       });
+      console.log('Despesas encontradas:', expenses);
 
       const totalExpenses = expenses.reduce((sum, expense) => sum + Number(expense.value), 0);
       const remaining = Number(limit.value) - totalExpenses;
@@ -83,6 +88,7 @@ class MonthlyLimitController {
         status: remaining >= 0 ? 'success' : 'failure',
       });
     } catch (error) {
+      console.error('Erro no método show do MonthlyLimitController:', error);
       return res.status(400).json({ error: 'Falha ao buscar limite' });
     }
   }
