@@ -35,14 +35,13 @@ export default function Profile({ navigation }) {
       [
         {
           text: 'Cancelar',
-          style: 'cancel',
+          style: 'cancel'
         },
         {
           text: 'Sair',
-          onPress: () => signOut(),
-        },
-      ],
-      { cancelable: false }
+          onPress: () => signOut()
+        }
+      ]
     );
   }
 
@@ -55,34 +54,20 @@ export default function Profile({ navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Meus Dados</Text>
+    <View style={styles.containerWhite}>
+      <Text style={styles.titleCentered}>Meus Dados</Text>
+      <View style={styles.dataBox}>
+        <Text style={styles.labelBold}>Nome</Text>
+        <Text style={styles.valueNormal}>{userData.name}</Text>
+        <Text style={[styles.labelBold, { marginTop: 18 }]}>Email</Text>
+        <Text style={styles.valueNormal}>{userData.email}</Text>
+        <Text style={[styles.labelBold, { marginTop: 18 }]}>Data de nascimento</Text>
+        <Text style={styles.valueNormal}>{format(new Date(userData.birthDate), 'dd/MM/yyyy')}</Text>
       </View>
-
-      <View style={styles.card}>
-        <View style={styles.field}>
-          <Text style={styles.label}>Nome</Text>
-          <Text style={styles.value}>{userData.name}</Text>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
-          <Text style={styles.value}>{userData.email}</Text>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>Data de Nascimento</Text>
-          <Text style={styles.value}>
-            {format(new Date(userData.birthDate), 'dd/MM/yyyy')}
-          </Text>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-        <Text style={styles.signOutButtonText}>Sair</Text>
+      <TouchableOpacity style={styles.signOutButtonGreen} onPress={handleSignOut}>
+        <Text style={styles.signOutButtonText}>SAIR</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -91,53 +76,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  header: {
-    padding: 20,
+  containerWhite: {
+    flex: 1,
     backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-  },
-  card: {
-    margin: 20,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  field: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    color: '#7f8c8d',
-    marginBottom: 5,
-  },
-  value: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: 'bold',
-  },
-  signOutButton: {
-    margin: 20,
-    backgroundColor: '#e74c3c',
-    padding: 15,
-    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  titleCentered: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111',
+    textAlign: 'center',
+    marginBottom: 32,
+    marginTop: 0,
+  },
+  dataBox: {
+    width: '80%',
+    marginBottom: 32,
+    alignSelf: 'center',
+  },
+  labelBold: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#111',
+    marginBottom: 2,
+  },
+  valueNormal: {
+    fontSize: 15,
+    color: '#222',
+    marginBottom: 2,
+  },
+  signOutButtonGreen: {
+    backgroundColor: '#4CC95B',
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+    marginTop: 8,
+    width: '80%',
+    alignSelf: 'center',
   },
   signOutButtonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 18,
   },
   loadingText: {
     fontSize: 16,

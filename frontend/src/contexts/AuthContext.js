@@ -16,7 +16,17 @@ export const AuthProvider = ({ children }) => {
 
         if (token && userData) {
           api.defaults.headers.Authorization = `Bearer ${token}`;
-          setUser(JSON.parse(userData));
+          try {
+            // Tenta buscar o usuário na API para validar o token
+            const response = await api.get('/users');
+            setUser(response.data);
+            await AsyncStorage.setItem('@MyEconomy:user', JSON.stringify(response.data));
+          } catch (error) {
+            // Se der erro, faz logout automático
+            await AsyncStorage.removeItem('@MyEconomy:token');
+            await AsyncStorage.removeItem('@MyEconomy:user');
+            setUser(null);
+          }
         }
       } finally {
         setLoading(false);

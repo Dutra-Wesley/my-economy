@@ -37,12 +37,20 @@ export default function SignUp({ navigation }) {
         Alert.alert('Erro', 'As senhas não coincidem');
         return;
       }
-      const dateParts = birthDate.split('-');
+      const dateParts = birthDate.split('/');
       if (dateParts.length !== 3) {
-        Alert.alert('Erro', 'Data de nascimento inválida. Use o formato DD-MM-YYYY');
+        Alert.alert('Erro', 'Data de nascimento inválida. Use o formato DD/MM/YYYY');
         return;
       }
-      const formattedBirthDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+      const [day, month, year] = dateParts;
+      if (
+        isNaN(day) || isNaN(month) || isNaN(year) ||
+        day.length !== 2 || month.length !== 2 || year.length !== 4
+      ) {
+        Alert.alert('Erro', 'Data de nascimento inválida. Use o formato DD/MM/YYYY');
+        return;
+      }
+      const formattedBirthDate = `${year}-${month}-${day}`;
       await signUp(name, email, password, formattedBirthDate);
     } catch (error) {
       Alert.alert('Erro', error.message);

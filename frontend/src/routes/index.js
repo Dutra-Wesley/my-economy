@@ -20,7 +20,7 @@ function AppRoutes() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#3498db',
+        tabBarActiveTintColor: '#4CC95B',
         tabBarInactiveTintColor: '#7f8c8d',
         tabBarStyle: {
           backgroundColor: '#fff',
@@ -36,9 +36,21 @@ function AppRoutes() {
       }}
     >
       <Tab.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          title: 'Perfil',
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <Icon name="person" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Home"
         component={Home}
         options={{
+          title: 'Início',
           headerShown: false,
           tabBarIcon: ({ color }) => (
             <Icon name="home" size={24} color={color} />
@@ -46,12 +58,24 @@ function AppRoutes() {
         }}
       />
       <Tab.Screen
-        name="Profile"
-        component={Profile}
+        name="NewExpense"
+        component={NewExpense}
         options={{
+          title: 'Despesas',
           headerShown: false,
           tabBarIcon: ({ color }) => (
-            <Icon name="person" size={24} color={color} />
+            <Icon name="attach-money" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="MonthlyLimit"
+        component={MonthlyLimit}
+        options={{
+          title: 'Limite',
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <Icon name="settings" size={24} color={color} />
           ),
         }}
       />
@@ -85,8 +109,6 @@ export default function Routes() {
         ) : (
           <>
             <Stack.Screen name="App" component={AppRoutes} />
-            <Stack.Screen name="NewExpense" component={NewExpense} />
-            <Stack.Screen name="MonthlyLimit" component={MonthlyLimit} />
           </>
         )}
       </Stack.Navigator>

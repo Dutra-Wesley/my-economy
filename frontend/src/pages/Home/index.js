@@ -9,10 +9,16 @@ import {
 } from 'react-native';
 import { format } from 'date-fns';
 import api from '../../services/api';
+import { Picker } from '@react-native-picker/picker';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Home({ navigation }) {
+  const { user } = useAuth();
   const [monthlyData, setMonthlyData] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadMonthlyData();
@@ -54,6 +60,49 @@ export default function Home({ navigation }) {
   }
 
   const status = getStatusMessage();
+
+  // Geração dos meses para o Picker
+  const months = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      label: format(date, "MMMM/yyyy", { locale: require('date-fns/locale/pt-BR') }),
+      value: format(date, 'yyyy-MM'),
+    });
+  }
+
+  if (!monthlyData) {
+    return (
+      <View style={[styles.emptyContainer, { paddingBottom: insets.bottom + 20 }]}> 
+        <View style={styles.greetingBox}>
+          <Text style={styles.greeting}>Olá {user?.name?.split(' ')[0] || ''} <Text style={{fontSize:22}}>👋</Text></Text>
+          <Text style={styles.subGreeting}>É bom te ver por aqui!</Text>
+        </View>
+        <View style={styles.centerContent}>
+          <View style={styles.pickerBox}>
+            <Picker
+              selectedValue={currentMonth}
+              onValueChange={setCurrentMonth}
+              style={styles.picker}
+              dropdownIconColor="#222"
+            >
+              {months.map((m) => (
+                <Picker.Item key={m.value} label={m.label.charAt(0).toUpperCase() + m.label.slice(1)} value={m.value} />
+              ))}
+            </Picker>
+          </View>
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>😴</Text>
+            <Text style={styles.emptyText}>Progresso não encontrado</Text>
+          </View>
+          <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('MonthlyLimit')}>
+            <Text style={styles.startButtonText}>COMEÇAR</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -222,5 +271,89 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  emptyContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  greetingBox: {
+    width: '85%',
+    alignSelf: 'flex-start',
+    marginLeft: '7.5%',
+    marginTop: 32,
+    marginBottom: 0,
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 0,
+  },
+  subGreeting: {
+    fontSize: 13,
+    color: '#444',
+    marginBottom: 4,
+    marginTop: 2,
+  },
+  pickerBox: {
+    width: '100%',
+    alignSelf: 'center',
+    marginTop: 4,
+    marginBottom: 0,
+  },
+  picker: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    width: '100%',
+    height: 44,
+    justifyContent: 'center',
+    minWidth: '100%',
+    overflow: 'visible',
+  },
+  emptyCard: {
+    backgroundColor: '#4CC95B',
+    borderRadius: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    width: '85%',
+    marginBottom: 24,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  emptyEmoji: {
+    fontSize: 54,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  emptyText: {
+    color: '#222',
+    fontSize: 17,
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  startButton: {
+    backgroundColor: '#4CC95B',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 0,
+    alignItems: 'center',
+    width: '85%',
+    alignSelf: 'center',
+    marginTop: 0,
+  },
+  startButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 0.5,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
 }); 
