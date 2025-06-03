@@ -11,6 +11,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { format } from 'date-fns';
 import api from '../../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function MonthlyLimit({ navigation }) {
   const [value, setValue] = useState('');
@@ -38,6 +39,15 @@ export default function MonthlyLimit({ navigation }) {
   useEffect(() => {
     fetchLimit();
   }, [queryMonth]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setValue('');
+      setReferenceMonth(format(new Date(), 'yyyy-MM'));
+      setQueryMonth(format(new Date(), 'yyyy-MM'));
+      setEditing(false);
+    }, [])
+  );
 
   async function fetchLimit() {
     setLoading(true);

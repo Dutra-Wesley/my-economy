@@ -12,6 +12,7 @@ import api from '../../services/api';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function Home({ navigation }) {
   const { user } = useAuth();
@@ -30,6 +31,12 @@ export default function Home({ navigation }) {
       console.log('monthlyData:', monthlyData);
     }
   }, [monthlyData]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setCurrentMonth(format(new Date(), 'yyyy-MM'));
+    }, [])
+  );
 
   async function loadMonthlyData() {
     try {

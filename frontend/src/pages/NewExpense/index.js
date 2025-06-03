@@ -11,6 +11,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { format } from 'date-fns';
 import api from '../../services/api';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function NewExpense({ navigation }) {
   const [description, setDescription] = useState('');
@@ -38,6 +39,15 @@ export default function NewExpense({ navigation }) {
   useEffect(() => {
     fetchExpenses();
   }, [historyMonth]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setDescription('');
+      setValue('');
+      setReferenceMonth(format(new Date(), 'yyyy-MM'));
+      setHistoryMonth(format(new Date(), 'yyyy-MM'));
+    }, [])
+  );
 
   async function fetchExpenses() {
     setLoading(true);
