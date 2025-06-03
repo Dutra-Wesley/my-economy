@@ -17,6 +17,16 @@ export default function SignUp({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const { signUp } = useAuth();
 
+  const formatarDataNascimento = (text) => {
+    let cleaned = text.replace(/\D/g, '');
+    if (cleaned.length > 2 && cleaned.length <= 4) {
+      cleaned = cleaned.replace(/(\d{2})(\d{1,2})/, '$1/$2');
+    } else if (cleaned.length > 4) {
+      cleaned = cleaned.replace(/(\d{2})(\d{2})(\d{1,4})/, '$1/$2/$3');
+    }
+    setBirthDate(cleaned);
+  };
+
   async function handleSignUp() {
     try {
       if (!name || !email || !password || !birthDate || !confirmPassword) {
@@ -67,9 +77,11 @@ export default function SignUp({ navigation }) {
           <Text style={styles.label}>Data de nascimento</Text>
           <TextInput
             style={styles.input}
-            placeholder="DD-MM-YYYY"
+            placeholder="DD/MM/YYYY"
             value={birthDate}
-            onChangeText={setBirthDate}
+            onChangeText={formatarDataNascimento}
+            keyboardType="numeric"
+            maxLength={10}
           />
         </View>
         <View style={styles.inputGroup}>
