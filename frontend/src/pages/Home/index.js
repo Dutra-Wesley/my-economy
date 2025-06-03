@@ -204,7 +204,7 @@ export default function Home({ navigation }) {
           )}
           <TouchableOpacity
             style={styles.expenseButton}
-            onPress={() => navigation.navigate('NewExpense')}
+            onPress={() => navigation.navigate('NewExpense', { selectedMonth: currentMonth })}
           >
             <Text style={styles.expenseButtonText}>Nova Despesa</Text>
           </TouchableOpacity>

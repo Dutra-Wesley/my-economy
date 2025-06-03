@@ -11,12 +11,14 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { format } from 'date-fns';
 import api from '../../services/api';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 
 export default function NewExpense({ navigation }) {
+  const route = useRoute();
+  const { selectedMonth } = route.params || {};
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
-  const [referenceMonth, setReferenceMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [referenceMonth, setReferenceMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM'));
   const [historyMonth, setHistoryMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [months, setMonths] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -56,11 +58,11 @@ export default function NewExpense({ navigation }) {
     React.useCallback(() => {
       setDescription('');
       setValue('');
-      setReferenceMonth(format(new Date(), 'yyyy-MM'));
-      setHistoryMonth(format(new Date(), 'yyyy-MM'));
+      setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
+      setHistoryMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
       setEditing(false);
       setEditingId(null);
-    }, [])
+    }, [selectedMonth])
   );
 
   async function fetchExpenses() {
