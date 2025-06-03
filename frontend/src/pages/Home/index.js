@@ -57,6 +57,7 @@ export default function Home({ navigation }) {
     const isCurrentMonth = now.getFullYear() === selected.getFullYear() && now.getMonth() === selected.getMonth();
     const isPastMonth = selected < new Date(now.getFullYear(), now.getMonth(), 1);
     const isFutureMonth = selected > new Date(now.getFullYear(), now.getMonth(), 1);
+    const showProgress = isCurrentMonth || isFutureMonth;
     // 1. Ultrapassou o limite (qualquer mês)
     if (status === 'failure') {
       return {
@@ -64,7 +65,7 @@ export default function Home({ navigation }) {
         message: 'Objetivo não atingido',
         value: `-R$${Math.abs(remaining).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`,
         color: '#4CC95B',
-        showProgress: isCurrentMonth || isFutureMonth,
+        showProgress,
       };
     }
     // 2. Final do mês e economizou (mês passado)
@@ -74,6 +75,7 @@ export default function Home({ navigation }) {
         message: 'Parabéns você economizou',
         value: `R$${(totalExpenses === 0 ? Number(limit.value) : remaining).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`,
         color: '#4CC95B',
+        showProgress: false,
       };
     }
     // 3. Progresso durante o mês atual ou futuro
@@ -83,7 +85,7 @@ export default function Home({ navigation }) {
         message: 'Continue assim!',
         value: '',
         color: '#4CC95B',
-        showProgress: true,
+        showProgress,
       };
     }
     // Caso não tenha limite, mostrar progresso não encontrado
@@ -147,61 +149,65 @@ export default function Home({ navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.greetingBox}>
-        <Text style={styles.greeting}>Olá {user?.name?.split(' ')[0] || ''} <Text style={{fontSize:22}}>👋</Text></Text>
-        <Text style={styles.subGreeting}>É bom te ver por aqui!</Text>
-      </View>
-      <View style={styles.pickerBox}>
-        <Picker
-          selectedValue={currentMonth}
-          onValueChange={setCurrentMonth}
-          style={styles.picker}
-          dropdownIconColor="#222"
-        >
-          {uniqueMonths.map((m) => (
-            <Picker.Item key={m.value} label={m.label.charAt(0).toUpperCase() + m.label.slice(1)} value={m.value} />
-          ))}
-        </Picker>
-      </View>
-      <View style={[styles.statusCard, { backgroundColor: statusCard.color }]}> 
-        <Text style={styles.statusEmoji}>{statusCard.emoji}</Text>
-        <Text style={styles.statusMessage}>{statusCard.message}</Text>
-        {statusCard.value !== '' && (
-          <Text style={styles.statusValue}>{statusCard.value}</Text>
-        )}
-      </View>
-      {statusCard.showProgress && (
-        <>
-          <Text style={styles.progressLabel}>Progresso</Text>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressValue}>
-              R$ {monthlyData.totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}/R$ {Number(monthlyData.limit.value).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
-            </Text>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.greetingBox}>
+          <Text style={styles.greeting}>Olá {user?.name?.split(' ')[0] || ''} <Text style={{fontSize:22}}>👋</Text></Text>
+          <Text style={styles.subGreeting}>É bom te ver por aqui!</Text>
+        </View>
+        <View style={styles.centerContent}>
+          <View style={styles.pickerBox}>
+            <Picker
+              selectedValue={currentMonth}
+              onValueChange={setCurrentMonth}
+              style={styles.picker}
+              dropdownIconColor="#222"
+            >
+              {uniqueMonths.map((m) => (
+                <Picker.Item key={m.value} label={m.label.charAt(0).toUpperCase() + m.label.slice(1)} value={m.value} />
+              ))}
+            </Picker>
           </View>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${Math.min(
-                    (monthlyData.totalExpenses / Number(monthlyData.limit.value)) * 100,
-                    100
-                  )}%`,
-                  backgroundColor: '#2ecc71',
-                },
-              ]}
-            />
+          <View style={[styles.statusCard, { backgroundColor: statusCard.color }]}> 
+            <Text style={styles.statusEmoji}>{statusCard.emoji}</Text>
+            <Text style={styles.statusMessage}>{statusCard.message}</Text>
+            {statusCard.value !== '' && (
+              <Text style={styles.statusValue}>{statusCard.value}</Text>
+            )}
           </View>
-        </>
-      )}
-      <TouchableOpacity
-        style={styles.expenseButton}
-        onPress={() => navigation.navigate('NewExpense')}
-      >
-        <Text style={styles.expenseButtonText}>Nova Despesa</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          {statusCard.showProgress && (
+            <>
+              <Text style={styles.progressLabel}>Progresso</Text>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressValue}>
+                  R$ {monthlyData.totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}/R$ {Number(monthlyData.limit.value).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+                </Text>
+              </View>
+              <View style={styles.progressBarFullWidth}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    {
+                      width: `${Math.min(
+                        (monthlyData.totalExpenses / Number(monthlyData.limit.value)) * 100,
+                        100
+                      )}%`,
+                      backgroundColor: '#2ecc71',
+                    },
+                  ]}
+                />
+              </View>
+            </>
+          )}
+          <TouchableOpacity
+            style={styles.expenseButton}
+            onPress={() => navigation.navigate('NewExpense')}
+          >
+            <Text style={styles.expenseButtonText}>Nova Despesa</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -306,6 +312,7 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     backgroundColor: '#2ecc71',
+    borderRadius: 5,
   },
   expenseButton: {
     margin: 20,
@@ -408,6 +415,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    marginTop: 10,
+    marginBottom: 16,
   },
   statusCard: {
     backgroundColor: '#4CC95B',
@@ -416,8 +425,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: 'center',
     width: '100%',
+    maxWidth: 400,
     marginBottom: 24,
-    marginTop: 10,
     alignSelf: 'center',
   },
   statusEmoji: {
@@ -446,5 +455,15 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     marginTop: 0,
     fontSize: 15,
+  },
+  progressBarFullWidth: {
+    width: '100%',
+    maxWidth: 400,
+    marginBottom: 16,
+    alignSelf: 'center',
+    height: 10,
+    backgroundColor: '#ecf0f1',
+    borderRadius: 5,
+    overflow: 'hidden',
   },
 }); 
