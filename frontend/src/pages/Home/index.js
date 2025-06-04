@@ -78,7 +78,7 @@ export default function Home({ navigation }) {
         message: 'Parabéns você economizou',
         value: `R$${(totalExpenses === 0 ? Number(limit.value) : remaining).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`,
         color: '#4CC95B',
-        showProgress: false,
+        showProgress: true,
       };
     }
     // 3. Progresso durante o mês atual ou futuro
@@ -96,6 +96,18 @@ export default function Home({ navigation }) {
   }
 
   const statusCard = getStatusCard();
+
+  // Lógica para saber se o mês selecionado é passado, atual ou futuro
+  let isCurrentMonth = false;
+  let isFutureMonth = false;
+  let isPastMonth = false;
+  if (monthlyData && monthlyData.limit) {
+    const now = new Date();
+    const selected = new Date(monthlyData.limit.referenceMonth);
+    isCurrentMonth = now.getFullYear() === selected.getFullYear() && now.getMonth() === selected.getMonth();
+    isPastMonth = selected < new Date(now.getFullYear(), now.getMonth(), 1);
+    isFutureMonth = selected > new Date(now.getFullYear(), now.getMonth(), 1);
+  }
 
   // Geração dos meses para o Picker
   const months = [];
@@ -204,12 +216,14 @@ export default function Home({ navigation }) {
               </View>
             </>
           )}
-          <TouchableOpacity
-            style={styles.expenseButton}
-            onPress={() => navigation.navigate('NewExpense', { selectedMonth: currentMonth })}
-          >
-            <Text style={styles.expenseButtonText}>Nova Despesa</Text>
-          </TouchableOpacity>
+          {(isCurrentMonth || isFutureMonth) && (
+            <TouchableOpacity
+              style={styles.expenseButton}
+              onPress={() => navigation.navigate('NewExpense', { selectedMonth: currentMonth })}
+            >
+              <Text style={styles.expenseButtonText}>Nova Despesa</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </View>
