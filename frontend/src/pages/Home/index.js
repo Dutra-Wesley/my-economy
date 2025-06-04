@@ -34,7 +34,9 @@ export default function Home({ navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
-      setCurrentMonth(format(new Date(), 'yyyy-MM'));
+      const nowMonth = format(new Date(), 'yyyy-MM');
+      setCurrentMonth(nowMonth);
+      setMonthlyData(null);
       loadMonthlyData();
     }, [])
   );
