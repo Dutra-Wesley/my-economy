@@ -132,28 +132,40 @@ class MonthlyLimitController {
       const { id } = req.params;
       const userId = req.userId;
 
+      console.log('Tentando excluir limite:', { id, userId });
+
       const limit = await MonthlyLimit.findOne({
         where: { id, userId },
       });
 
       if (!limit) {
+        console.log('Limite não encontrado');
         return res.status(404).json({ error: 'Limite não encontrado' });
       }
 
       const [year, month] = limit.referenceMonth.split('-');
-      const referenceDate = new Date(Number(year), Number(month) - 1, 1);
+      const monthPadded = String(month).padStart(2, '0');
+      const referenceYearMonth = `${year}-${monthPadded}`;
       const currentDate = new Date();
-
       const currentYearMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-      const referenceYearMonth = `${referenceDate.getFullYear()}-${String(referenceDate.getMonth() + 1).padStart(2, '0')}`;
+
+      console.log('Dados para comparação:', {
+        referenceMonth: limit.referenceMonth,
+        referenceYearMonth,
+        currentYearMonth,
+      });
+
       if (referenceYearMonth < currentYearMonth) {
+        console.log('Tentativa de exclusão de mês anterior!');
         return res.status(400).json({ error: 'Não é possível excluir limite de meses anteriores' });
       }
 
       await limit.destroy();
+      console.log('Limite excluído com sucesso!');
 
       return res.status(204).send();
     } catch (error) {
+      console.error('Erro ao excluir limite:', error);
       return res.status(400).json({ error: 'Falha ao excluir limite' });
     }
   }
