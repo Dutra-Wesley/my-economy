@@ -52,10 +52,26 @@ export default function MonthlyLimit({ navigation }) {
     React.useCallback(() => {
       setValue('');
       setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
-      setQueryMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
       setEditing(false);
+      if (selectedMonth) {
+        setQueryMonth(selectedMonth);
+      }
+      fetchLimit();
     }, [selectedMonth])
   );
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      setValue('');
+      setReferenceMonth(format(new Date(), 'yyyy-MM'));
+      setQueryMonth(format(new Date(), 'yyyy-MM'));
+      setEditing(false);
+      if (route.params?.selectedMonth) {
+        navigation.setParams({ selectedMonth: undefined });
+      }
+    });
+    return unsubscribe;
+  }, [navigation, route.params]);
 
   async function fetchLimit() {
     setLoading(true);
@@ -115,12 +131,14 @@ export default function MonthlyLimit({ navigation }) {
       return;
     }
 
+    const limitId = limit && (limit.limit ? limit.limit.id : limit.id);
+
     Alert.alert('Excluir', 'Deseja realmente excluir este limite?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir', style: 'destructive', onPress: async () => {
           try {
-            await api.delete(`/monthly-limits/${limit.id}`);
+            await api.delete(`/monthly-limits/${limitId}`);
             setLimit(null);
             setValue('');
             setEditing(false);
@@ -165,6 +183,7 @@ export default function MonthlyLimit({ navigation }) {
             selectedValue={referenceMonth}
             onValueChange={(itemValue) => {
               setReferenceMonth(itemValue);
+              setQueryMonth(itemValue);
             }}
             style={styles.picker}
             dropdownIconColor="#222"
