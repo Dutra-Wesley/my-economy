@@ -87,11 +87,10 @@ npm start
 ## 📱 Funcionalidades
 
 - Autenticação de usuários
-- Registro de despesas e receitas
-- Categorização de transações
-- Visualização de histórico
-- Relatórios e gráficos
-- Controle de orçamento
+- Registro de despesas e limites mensais
+- Visualização de histórico de despesas e limites
+- Visualização do progresso mensal
+- Controle de gastos mensais
 
 ## 📁 Estrutura do Projeto
 
@@ -125,10 +124,6 @@ my-economy/
 3. Faça o Commit das suas mudanças (`git commit -m 'Add some AmazingFeature'`)
 4. Faça o Push para a Branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ## ✒️ Autor
 
