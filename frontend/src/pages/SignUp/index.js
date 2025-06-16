@@ -22,6 +22,26 @@ export default function SignUp({ navigation }) {
     return regex.test(email);
   };
 
+  const validarData = (data) => {
+    const [dia, mes, ano] = data.split('/').map(Number);
+    
+    if (mes < 1 || mes > 12) {
+      return false;
+    }
+
+    const anoAtual = new Date().getFullYear();
+    if (ano < 1900 || ano > anoAtual) {
+      return false;
+    }
+
+    const diasNoMes = new Date(ano, mes, 0).getDate();
+    if (dia < 1 || dia > diasNoMes) {
+      return false;
+    }
+
+    return true;
+  };
+
   const formatarDataNascimento = (text) => {
     let cleaned = text.replace(/\D/g, '');
     if (cleaned.length > 2 && cleaned.length <= 4) {
@@ -61,6 +81,11 @@ export default function SignUp({ navigation }) {
         day.length !== 2 || month.length !== 2 || year.length !== 4
       ) {
         Alert.alert('Erro', 'Data de nascimento inválida. Use o formato DD/MM/YYYY');
+        return;
+      }
+
+      if (!validarData(birthDate)) {
+        Alert.alert('Erro', 'Data de nascimento inválida');
         return;
       }
 
