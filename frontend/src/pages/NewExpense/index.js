@@ -237,12 +237,16 @@ export default function NewExpense({ navigation }) {
             <View key={exp.id} style={styles.expenseItem}>
               <Text style={styles.expenseDesc}>{exp.description}</Text>
               <Text style={styles.expenseValue}>R${exp.value}</Text>
-              <TouchableOpacity style={styles.editBtn} onPress={() => handleEdit(exp)}>
-                <Text style={styles.editIcon}>✏️</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(exp.id)}>
-                <Text style={styles.deleteIcon}>🗑️</Text>
-              </TouchableOpacity>
+              {isMonthValid(exp.referenceMonth) && (
+                <>
+                  <TouchableOpacity style={styles.editBtn} onPress={() => handleEdit(exp)}>
+                    <Text style={styles.editIcon}>✏️</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(exp.id)}>
+                    <Text style={styles.deleteIcon}>🗑️</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           ))}
         </View>

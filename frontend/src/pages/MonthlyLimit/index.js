@@ -219,14 +219,16 @@ export default function MonthlyLimit({ navigation }) {
           <Text style={styles.limitText}>
             {months.find(m => m.value === queryMonth)?.label}  R${Number((limit.limit ? limit.limit.value : limit.value)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </Text>
-          <View style={styles.limitActions}>
-            <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
-              <Text style={styles.actionText}>EDITAR</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-              <Text style={styles.actionText}>EXCLUIR</Text>
-            </TouchableOpacity>
-          </View>
+          {isMonthValid(queryMonth) && (
+            <View style={styles.limitActions}>
+              <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
+                <Text style={styles.actionText}>EDITAR</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+                <Text style={styles.actionText}>EXCLUIR</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       )}
     </ScrollView>
