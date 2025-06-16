@@ -17,6 +17,11 @@ export default function SignUp({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const { signUp } = useAuth();
 
+  const validarEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
   const formatarDataNascimento = (text) => {
     let cleaned = text.replace(/\D/g, '');
     if (cleaned.length > 2 && cleaned.length <= 4) {
@@ -33,15 +38,23 @@ export default function SignUp({ navigation }) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
+
+      if (!validarEmail(email)) {
+        Alert.alert('Erro', 'Por favor, insira um endereço de e-mail válido');
+        return;
+      }
+
       if (password !== confirmPassword) {
         Alert.alert('Erro', 'As senhas não coincidem');
         return;
       }
+
       const dateParts = birthDate.split('/');
       if (dateParts.length !== 3) {
         Alert.alert('Erro', 'Data de nascimento inválida. Use o formato DD/MM/YYYY');
         return;
       }
+
       const [day, month, year] = dateParts;
       if (
         isNaN(day) || isNaN(month) || isNaN(year) ||
@@ -50,10 +63,15 @@ export default function SignUp({ navigation }) {
         Alert.alert('Erro', 'Data de nascimento inválida. Use o formato DD/MM/YYYY');
         return;
       }
+
       const formattedBirthDate = `${year}-${month}-${day}`;
       await signUp(name, email, password, formattedBirthDate);
     } catch (error) {
-      Alert.alert('Erro', error.message);
+      if (error.message.includes('email')) {
+        Alert.alert('Erro', 'Este e-mail já está em uso. Por favor, use outro endereço de e-mail.');
+      } else {
+        Alert.alert('Erro', 'Ocorreu um erro ao criar sua conta. Por favor, tente novamente.');
+      }
     }
   }
 
