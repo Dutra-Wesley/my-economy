@@ -417,6 +417,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 2,
     elevation: 2,
+    minHeight: 200,
   },
   emptyEmoji: {
     fontSize: 54,
@@ -425,9 +426,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: '#222',
-    fontSize: 17,
-    marginTop: 2,
+    fontSize: 20,
+    marginTop: 0,
     textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 0,
   },
   startButton: {
     backgroundColor: '#4CC95B',
