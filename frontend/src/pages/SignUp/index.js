@@ -92,8 +92,8 @@ export default function SignUp({ navigation }) {
       const formattedBirthDate = `${year}-${month}-${day}`;
       await signUp(name, email, password, formattedBirthDate);
     } catch (error) {
-      if (error.message.includes('email')) {
-        Alert.alert('Erro', 'Este e-mail já está em uso. Por favor, use outro endereço de e-mail.');
+      if (error.message.includes('Usuário já existe')) {
+        Alert.alert('Erro', 'E-mail já cadastrado.');
       } else {
         Alert.alert('Erro', 'Ocorreu um erro ao criar sua conta. Por favor, tente novamente.');
       }
