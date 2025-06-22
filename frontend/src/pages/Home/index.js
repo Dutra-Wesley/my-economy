@@ -1,3 +1,4 @@
+// Importação das dependências necessárias para a tela
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -7,61 +8,73 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { format } from 'date-fns';
-import api from '../../services/api';
-import { Picker } from '@react-native-picker/picker';
-import { useAuth } from '../../contexts/AuthContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { format } from 'date-fns'; // Para formatação de datas
+import api from '../../services/api'; // Serviço para chamadas da API
+import { Picker } from '@react-native-picker/picker'; // Componente de seleção de mês
+import { useAuth } from '../../contexts/AuthContext'; // Hook para dados do usuário autenticado
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Para lidar com área segura da tela
+import { useFocusEffect } from '@react-navigation/native'; // Hook para executar ações quando a tela ganha foco
 
 export default function Home({ navigation }) {
+  // Obtém dados do usuário logado
   const { user } = useAuth();
-  const [monthlyData, setMonthlyData] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const insets = useSafeAreaInsets();
+  
+  // Estados do componente
+  const [monthlyData, setMonthlyData] = useState(null); // Dados do mês selecionado (limite e gastos)
+  const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM')); // Mês atualmente selecionado
+  const insets = useSafeAreaInsets(); // Espaçamentos seguros da tela
 
+  // Recarrega os dados sempre que o mês selecionado muda
   useEffect(() => {
-    setMonthlyData(null);
-    loadMonthlyData();
+    setMonthlyData(null); // Limpa dados anteriores
+    loadMonthlyData(); // Carrega novos dados
   }, [currentMonth]);
 
+  // Log para debug dos dados mensais
   useEffect(() => {
     if (monthlyData !== null) {
       console.log('monthlyData:', monthlyData);
     }
   }, [monthlyData]);
 
+  // Executa quando a tela ganha foco (usuário volta para ela)
   useFocusEffect(
     React.useCallback(() => {
       const nowMonth = format(new Date(), 'yyyy-MM');
-      setCurrentMonth(nowMonth);
-      setMonthlyData(null);
-      loadMonthlyData();
+      setCurrentMonth(nowMonth); // Volta para o mês atual
+      setMonthlyData(null); // Limpa dados
+      loadMonthlyData(); // Recarrega dados
     }, [])
   );
 
+  // Função para carregar dados do mês via API
   async function loadMonthlyData() {
     try {
       const response = await api.get(`/monthly-limits?month=${currentMonth}`);
       setMonthlyData(response.data);
     } catch (error) {
+      // Só mostra erro se não for 404 (mês sem dados é normal)
       if (error.response?.status !== 404) {
         Alert.alert('Erro', 'Erro ao carregar dados do mês');
       }
     }
   }
 
+  // Função que determina qual card de status mostrar baseado na situação do mês
   function getStatusCard() {
     if (!monthlyData || !monthlyData.limit) return null;
+    
     const { status, remaining, totalExpenses, limit } = monthlyData;
     const now = new Date();
     const selected = new Date(limit.referenceMonth);
+    
+    // Determina se é mês atual, passado ou futuro
     const isCurrentMonth = now.getFullYear() === selected.getFullYear() && now.getMonth() === selected.getMonth();
     const isPastMonth = selected < new Date(now.getFullYear(), now.getMonth(), 1);
     const isFutureMonth = selected > new Date(now.getFullYear(), now.getMonth(), 1);
-    const showProgress = isCurrentMonth || isFutureMonth;
-    // 1. Ultrapassou o limite (qualquer mês)
+    const showProgress = isCurrentMonth || isFutureMonth; // Mostra progresso apenas para mês atual ou futuro
+    
+    // Caso 1: Ultrapassou o limite (qualquer mês)
     if (status === 'failure') {
       return {
         emoji: '😓',
@@ -71,7 +84,8 @@ export default function Home({ navigation }) {
         showProgress,
       };
     }
-    // 2. Final do mês e economizou (mês passado)
+    
+    // Caso 2: Sucesso em mês passado (economizou dinheiro)
     if (status === 'success' && isPastMonth) {
       return {
         emoji: '🤩',
@@ -81,7 +95,8 @@ export default function Home({ navigation }) {
         showProgress: true,
       };
     }
-    // 3. Progresso durante o mês atual ou futuro
+    
+    // Caso 3: Mês atual ou futuro - ainda dentro do limite
     if (isCurrentMonth || isFutureMonth) {
       return {
         emoji: '🙂',
@@ -91,13 +106,13 @@ export default function Home({ navigation }) {
         showProgress,
       };
     }
-    // Caso não tenha limite, mostrar progresso não encontrado
+    
     return null;
   }
 
   const statusCard = getStatusCard();
 
-  // Lógica para saber se o mês selecionado é passado, atual ou futuro
+  // Determina tipo do mês selecionado para controlar funcionalidades
   let isCurrentMonth = false;
   let isFutureMonth = false;
   let isPastMonth = false;
@@ -109,7 +124,7 @@ export default function Home({ navigation }) {
     isFutureMonth = selected > new Date(now.getFullYear(), now.getMonth(), 1);
   }
 
-  // Geração dos meses para o Picker
+  // Gera lista de meses para o seletor (6 meses passados + 12 futuros)
   const months = [];
   const now = new Date();
   for (let i = -6; i <= 12; i++) {
@@ -119,7 +134,8 @@ export default function Home({ navigation }) {
       value: format(date, 'yyyy-MM'),
     });
   }
-  // Garante que o mês selecionado sempre aparece no Picker, sem duplicatas
+  
+  // Adiciona mês atual se não estiver na lista
   if (currentMonth && !months.some(m => m.value === currentMonth)) {
     const date = new Date(currentMonth + '-01');
     months.push({
@@ -127,18 +143,23 @@ export default function Home({ navigation }) {
       value: currentMonth,
     });
   }
-  // Remove duplicatas e ordena
+  
+  // Remove duplicatas e ordena os meses
   const uniqueMonths = Array.from(new Map(months.map(m => [m.value, m])).values())
     .sort((a, b) => a.value.localeCompare(b.value));
 
+  // Tela vazia - quando não há dados ou limite configurado para o mês
   if (!monthlyData || !monthlyData.limit || !statusCard) {
     return (
       <View style={[styles.emptyContainer, { paddingBottom: insets.bottom + 20 }]}> 
+        {/* Saudação ao usuário */}
         <View style={styles.greetingBox}>
           <Text style={styles.greeting}>Olá {user?.name?.split(' ')[0] || ''} <Text style={{fontSize:22}}>👋</Text></Text>
           <Text style={styles.subGreeting}>É bom te ver por aqui!</Text>
         </View>
+        
         <View style={styles.centerContent}>
+          {/* Seletor de mês */}
           <View style={styles.pickerBox}>
             <Picker
               selectedValue={currentMonth}
@@ -151,10 +172,14 @@ export default function Home({ navigation }) {
               ))}
             </Picker>
           </View>
+          
+          {/* Card indicando que não há progresso */}
           <View style={styles.emptyCard}>
             <Text style={styles.emptyEmoji}>😴</Text>
             <Text style={styles.emptyText}>Progresso não encontrado</Text>
           </View>
+          
+          {/* Botão para começar (ir para tela de limite mensal) */}
           <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('MonthlyLimit', { selectedMonth: currentMonth })}>
             <Text style={styles.startButtonText}>COMEÇAR</Text>
           </TouchableOpacity>
@@ -163,14 +188,18 @@ export default function Home({ navigation }) {
     );
   }
 
+  // Tela principal - quando há dados do mês
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
+        {/* Saudação ao usuário */}
         <View style={styles.greetingBox}>
           <Text style={styles.greeting}>Olá {user?.name?.split(' ')[0] || ''} <Text style={{fontSize:22}}>👋</Text></Text>
           <Text style={styles.subGreeting}>É bom te ver por aqui!</Text>
         </View>
+        
         <View style={styles.centerContent}>
+          {/* Seletor de mês */}
           <View style={styles.pickerBox}>
             <Picker
               selectedValue={currentMonth}
@@ -183,6 +212,8 @@ export default function Home({ navigation }) {
               ))}
             </Picker>
           </View>
+          
+          {/* Card de status do mês (sucesso, falha, progresso) */}
           <View style={[styles.statusCard, { backgroundColor: statusCard.color }]}> 
             <Text style={styles.statusEmoji}>{statusCard.emoji}</Text>
             <Text style={styles.statusMessage}>{statusCard.message}</Text>
@@ -190,6 +221,8 @@ export default function Home({ navigation }) {
               <Text style={styles.statusValue}>{statusCard.value}</Text>
             )}
           </View>
+          
+          {/* Barra de progresso - só aparece para mês atual ou futuro */}
           {statusCard.showProgress && (
             <>
               <View style={styles.progressHeaderRow}>
@@ -204,6 +237,7 @@ export default function Home({ navigation }) {
                     style={[
                       styles.progressFill,
                       {
+                        // Calcula porcentagem do progresso (máximo 100%)
                         width: `${Math.min(
                           (monthlyData.totalExpenses / Number(monthlyData.limit.value)) * 100,
                           100
@@ -216,6 +250,8 @@ export default function Home({ navigation }) {
               </View>
             </>
           )}
+          
+          {/* Botão para adicionar nova despesa - só aparece para mês atual ou futuro */}
           {(isCurrentMonth || isFutureMonth) && (
             <TouchableOpacity
               style={styles.expenseButton}
