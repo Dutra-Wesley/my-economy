@@ -1,3 +1,4 @@
+// Importação das dependências necessárias para a tela
 import React, { useState } from 'react';
 import {
   View,
@@ -7,22 +8,29 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext'; // Hook para autenticação
 
 export default function SignIn({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // Estados para os campos do formulário de login
+  const [email, setEmail] = useState(''); // Email do usuário
+  const [password, setPassword] = useState(''); // Senha do usuário
+  
+  // Função de login do contexto de autenticação
   const { signIn } = useAuth();
 
+  // Função para processar login do usuário
   async function handleSignIn() {
     try {
+      // Validação dos campos obrigatórios
       if (!email || !password) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
 
+      // Executa login através do contexto de autenticação
       await signIn(email, password);
     } catch (error) {
+      // Exibe erro caso login falhe
       Alert.alert('Erro', error.message);
     }
   }
@@ -30,31 +38,40 @@ export default function SignIn({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>ENTRAR</Text>
+      
+      {/* Formulário de login */}
       <View style={styles.form}>
+        {/* Campo de email */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
             placeholder=""
-            keyboardType="email-address"
-            autoCapitalize="none"
+            keyboardType="email-address" // Teclado otimizado para email
+            autoCapitalize="none" // Não capitaliza automaticamente
             value={email}
             onChangeText={setEmail}
           />
         </View>
+        
+        {/* Campo de senha */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Senha</Text>
           <TextInput
             style={styles.input}
             placeholder=""
-            secureTextEntry
+            secureTextEntry // Oculta texto da senha
             value={password}
             onChangeText={setPassword}
           />
         </View>
+        
+        {/* Botão de login */}
         <TouchableOpacity style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
+        
+        {/* Link para tela de cadastro */}
         <TouchableOpacity
           style={styles.link}
           onPress={() => navigation.navigate('SignUp')}
