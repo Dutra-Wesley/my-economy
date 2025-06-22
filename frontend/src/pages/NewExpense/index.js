@@ -1,3 +1,4 @@
+// Importação das dependências necessárias para a tela
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,36 +9,45 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { format } from 'date-fns';
-import api from '../../services/api';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker'; // Componente de seleção de mês
+import { format } from 'date-fns'; // Para formatação de datas
+import api from '../../services/api'; // Serviço para chamadas da API
+import { useFocusEffect, useRoute } from '@react-navigation/native'; // Hooks de navegação
 
 export default function NewExpense({ navigation }) {
+  // Obtém parâmetros passados pela navegação
   const route = useRoute();
   const { selectedMonth } = route.params || {};
-  const [description, setDescription] = useState('');
-  const [value, setValue] = useState('');
-  const [referenceMonth, setReferenceMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM'));
-  const [historyMonth, setHistoryMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [months, setMonths] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  
+  // Estados do formulário de despesa
+  const [description, setDescription] = useState(''); // Descrição da despesa
+  const [value, setValue] = useState(''); // Valor da despesa
+  const [referenceMonth, setReferenceMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM')); // Mês de referência para cadastro
+  
+  // Estados para consulta de histórico
+  const [historyMonth, setHistoryMonth] = useState(format(new Date(), 'yyyy-MM')); // Mês selecionado para visualizar histórico
+  const [months, setMonths] = useState([]); // Lista de meses disponíveis no seletor
+  const [expenses, setExpenses] = useState([]); // Lista de despesas do mês consultado
+  
+  // Estados de controle
+  const [loading, setLoading] = useState(false); // Estado de carregamento
+  const [editing, setEditing] = useState(false); // Indica se está em modo de edição
+  const [editingId, setEditingId] = useState(null); // ID da despesa sendo editada
 
+  // Função que verifica se um mês é válido para operações (não pode ser mês passado)
   function isMonthValid(month) {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
     const [year, monthNum] = month.split('-');
     
+    // Permite apenas mês atual ou futuros
     return Number(year) > currentYear || 
            (Number(year) === currentYear && Number(monthNum) - 1 >= currentMonth);
   }
 
+  // Gera lista de meses disponíveis no seletor (6 passados + 12 futuros)
   useEffect(() => {
-    // Gera 6 meses anteriores, o mês atual e 12 meses futuros para o Picker
     const arr = [];
     const now = new Date();
     for (let i = -6; i <= 12; i++) {
@@ -50,61 +60,69 @@ export default function NewExpense({ navigation }) {
     setMonths(arr);
   }, []);
 
+  // Busca despesas sempre que o mês do histórico muda
   useEffect(() => {
     fetchExpenses();
   }, [historyMonth]);
 
+  // Executa quando a tela ganha foco (reset de formulário se não estiver editando)
   useFocusEffect(
     React.useCallback(() => {
-      if (!editing) {
+      if (!editing) { // Só limpa se não estiver editando uma despesa
         const initialMonth = selectedMonth || format(new Date(), 'yyyy-MM');
-        setDescription('');
-        setValue('');
-        setReferenceMonth(initialMonth);
-        setHistoryMonth(initialMonth);
+        setDescription(''); // Limpa descrição
+        setValue(''); // Limpa valor
+        setReferenceMonth(initialMonth); // Define mês para cadastro
+        setHistoryMonth(initialMonth); // Define mês para histórico
       }
     }, [selectedMonth])
   );
 
+  // Executa quando a tela perde foco (limpa todos os estados)
   useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {
-      setDescription('');
-      setValue('');
-      setReferenceMonth(format(new Date(), 'yyyy-MM'));
-      setHistoryMonth(format(new Date(), 'yyyy-MM'));
-      setEditing(false);
-      setEditingId(null);
+      setDescription(''); // Limpa descrição
+      setValue(''); // Limpa valor
+      setReferenceMonth(format(new Date(), 'yyyy-MM')); // Volta para mês atual
+      setHistoryMonth(format(new Date(), 'yyyy-MM')); // Volta para mês atual no histórico
+      setEditing(false); // Sai do modo de edição
+      setEditingId(null); // Limpa ID da despesa sendo editada
       if (route.params?.selectedMonth) {
-        navigation.setParams({ selectedMonth: undefined });
+        navigation.setParams({ selectedMonth: undefined }); // Limpa parâmetro da navegação
       }
     });
     return unsubscribe;
   }, [navigation, route.params]);
 
+  // Função para buscar despesas do mês selecionado via API
   async function fetchExpenses() {
-    setLoading(true);
+    setLoading(true); // Ativa indicador de carregamento
     try {
       const response = await api.get(`/expenses?month=${historyMonth}`);
-      setExpenses(response.data || []);
+      setExpenses(response.data || []); // Define lista de despesas ou array vazio
     } catch (error) {
-      setExpenses([]);
+      setExpenses([]); // Em caso de erro, define lista vazia
     }
-    setLoading(false);
+    setLoading(false); // Desativa indicador de carregamento
   }
 
+  // Função para salvar ou atualizar uma despesa
   async function handleSubmit() {
     try {
+      // Validação dos campos obrigatórios
       if (!description || !value || !referenceMonth) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
 
+      // Verifica se o mês é válido (não pode ser passado)
       if (!isMonthValid(referenceMonth)) {
         Alert.alert('Erro', 'Não é possível cadastrar ou editar despesas de meses anteriores');
         return;
       }
 
       if (editing && editingId) {
+        // Atualiza despesa existente
         await api.put(`/expenses/${editingId}`, {
           description,
           value: Number(value),
@@ -119,6 +137,7 @@ export default function NewExpense({ navigation }) {
         setEditingId(null);
         fetchExpenses();
       } else {
+        // Cria nova despesa
         await api.post('/expenses', {
           description,
           value: Number(value),
@@ -140,22 +159,25 @@ export default function NewExpense({ navigation }) {
     }
   }
 
+  // Função para excluir uma despesa
   async function handleDelete(id) {
     const expense = expenses.find(exp => exp.id === id);
-    if (!expense) return;
+    if (!expense) return; // Não faz nada se a despesa não for encontrada
 
+    // Verifica se o mês da despesa pode ser editado
     if (!isMonthValid(expense.referenceMonth)) {
       Alert.alert('Erro', 'Não é possível excluir despesas de meses anteriores');
       return;
     }
 
+    // Mostra confirmação antes de excluir
     Alert.alert('Excluir', 'Deseja realmente excluir esta despesa?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir', style: 'destructive', onPress: async () => {
           try {
-            await api.delete(`/expenses/${id}`);
-            fetchExpenses();
+            await api.delete(`/expenses/${id}`); // Exclui via API
+            fetchExpenses(); // Atualiza lista de despesas
           } catch {
             Alert.alert('Erro', 'Erro ao excluir despesa');
           }
@@ -164,22 +186,27 @@ export default function NewExpense({ navigation }) {
     ]);
   }
 
+  // Função para iniciar edição de uma despesa existente
   function handleEdit(expense) {
+    // Verifica se o mês da despesa pode ser editado
     if (!isMonthValid(expense.referenceMonth)) {
       Alert.alert('Erro', 'Não é possível editar despesas de meses anteriores');
       return;
     }
 
-    setDescription(expense.description);
-    setValue(String(expense.value));
-    setReferenceMonth(expense.referenceMonth.slice(0, 7));
-    setEditing(true);
-    setEditingId(expense.id);
+    // Preenche formulário com dados da despesa existente
+    setDescription(expense.description); // Define descrição no campo
+    setValue(String(expense.value)); // Define valor no campo
+    setReferenceMonth(expense.referenceMonth.slice(0, 7)); // Define mês no seletor
+    setEditing(true); // Ativa modo de edição
+    setEditingId(expense.id); // Define ID da despesa sendo editada
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
       <Text style={styles.title}>Despesa</Text>
+      
+      {/* Formulário para cadastro/edição de despesas */}
       <View style={styles.form}>
         <Text style={styles.label}>Descrição</Text>
         <TextInput
@@ -187,6 +214,7 @@ export default function NewExpense({ navigation }) {
           value={description}
           onChangeText={setDescription}
         />
+        
         <Text style={styles.label}>Valor</Text>
         <TextInput
           style={styles.input}
@@ -194,13 +222,14 @@ export default function NewExpense({ navigation }) {
           value={value}
           onChangeText={setValue}
         />
+        
         <Text style={styles.label}>Mês</Text>
         <View style={styles.pickerBox}>
           <Picker
             selectedValue={referenceMonth}
             onValueChange={(value) => {
-              setReferenceMonth(value);
-              setHistoryMonth(value);
+              setReferenceMonth(value); // Define mês para cadastro
+              setHistoryMonth(value); // Também atualiza histórico para o mesmo mês
             }}
             style={styles.picker}
             dropdownIconColor="#222"
@@ -210,15 +239,19 @@ export default function NewExpense({ navigation }) {
             ))}
           </Picker>
         </View>
+        
+        {/* Botão para salvar/atualizar despesa */}
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>SALVAR</Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Seção de histórico de despesas */}
       <Text style={styles.historyTitle}>Histórico</Text>
       <View style={styles.pickerBox}>
         <Picker
           selectedValue={historyMonth}
-          onValueChange={setHistoryMonth}
+          onValueChange={setHistoryMonth} // Muda apenas o mês do histórico
           style={styles.picker}
           dropdownIconColor="#222"
         >
@@ -227,6 +260,8 @@ export default function NewExpense({ navigation }) {
           ))}
         </Picker>
       </View>
+      
+      {/* Lista de despesas do mês selecionado */}
       {loading ? (
         <Text style={styles.loading}>Carregando...</Text>
       ) : expenses.length === 0 ? (
@@ -237,6 +272,8 @@ export default function NewExpense({ navigation }) {
             <View key={exp.id} style={styles.expenseItem}>
               <Text style={styles.expenseDesc}>{exp.description}</Text>
               <Text style={styles.expenseValue}>R${exp.value}</Text>
+              
+              {/* Botões de ação - só aparecem para meses válidos (atual ou futuros) */}
               {isMonthValid(exp.referenceMonth) && (
                 <>
                   <TouchableOpacity style={styles.editBtn} onPress={() => handleEdit(exp)}>
