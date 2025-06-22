@@ -1,3 +1,4 @@
+// Importação das dependências necessárias para a tela
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,30 +9,34 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { format } from 'date-fns';
-import api from '../../services/api';
-import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker'; // Componente de seleção de mês
+import { format } from 'date-fns'; // Para formatação de datas
+import api from '../../services/api'; // Serviço para chamadas da API
+import { useFocusEffect, useRoute } from '@react-navigation/native'; // Hooks de navegação
 
 export default function MonthlyLimit({ navigation }) {
+  // Obtém parâmetros passados pela navegação
   const route = useRoute();
   const { selectedMonth } = route.params || {};
-  const [value, setValue] = useState('');
-  const [referenceMonth, setReferenceMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM'));
-  const [months, setMonths] = useState([]);
-  const [queryMonth, setQueryMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM'));
-  const [limit, setLimit] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState(false);
+  
+  // Estados do componente
+  const [value, setValue] = useState(''); // Valor do limite a ser cadastrado/editado
+  const [referenceMonth, setReferenceMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM')); // Mês de referência para cadastro
+  const [months, setMonths] = useState([]); // Lista de meses disponíveis no seletor
+  const [queryMonth, setQueryMonth] = useState(selectedMonth || format(new Date(), 'yyyy-MM')); // Mês selecionado para consulta
+  const [limit, setLimit] = useState(null); // Dados do limite consultado
+  const [loading, setLoading] = useState(false); // Estado de carregamento
+  const [editing, setEditing] = useState(false); // Indica se está em modo de edição
 
+  // Função que verifica se um mês é válido para operações (não pode ser mês passado)
   function isMonthValid(month) {
     const current = new Date();
     const currentStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
-    return month >= currentStr;
+    return month >= currentStr; // Permite apenas mês atual ou futuros
   }
 
+  // Gera lista de meses disponíveis no seletor (6 passados + 12 futuros)
   useEffect(() => {
-    // Gera 6 meses anteriores, o mês atual e 12 meses futuros para o Picker
     const arr = [];
     const now = new Date();
     for (let i = -6; i <= 12; i++) {
@@ -44,60 +49,70 @@ export default function MonthlyLimit({ navigation }) {
     setMonths(arr);
   }, []);
 
+  // Busca dados do limite sempre que o mês de consulta muda
   useEffect(() => {
     fetchLimit();
   }, [queryMonth]);
 
+  // Executa quando a tela ganha foco (reset de estados e busca de dados)
   useFocusEffect(
     React.useCallback(() => {
-      setValue('');
-      setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM'));
-      setEditing(false);
+      setValue(''); // Limpa campo de valor
+      setReferenceMonth(selectedMonth || format(new Date(), 'yyyy-MM')); // Define mês para cadastro
+      setEditing(false); // Sai do modo de edição
       if (selectedMonth) {
-        setQueryMonth(selectedMonth);
+        setQueryMonth(selectedMonth); // Define mês para consulta se veio por parâmetro
       }
-      fetchLimit();
+      fetchLimit(); // Busca dados do limite
     }, [selectedMonth])
   );
 
+  // Executa quando a tela perde foco (limpa estados)
   useEffect(() => {
     const unsubscribe = navigation.addListener('blur', () => {
-      setValue('');
-      setReferenceMonth(format(new Date(), 'yyyy-MM'));
-      setQueryMonth(format(new Date(), 'yyyy-MM'));
-      setEditing(false);
+      setValue(''); // Limpa campo de valor
+      setReferenceMonth(format(new Date(), 'yyyy-MM')); // Volta para mês atual
+      setQueryMonth(format(new Date(), 'yyyy-MM')); // Volta para mês atual na consulta
+      setEditing(false); // Sai do modo de edição
       if (route.params?.selectedMonth) {
-        navigation.setParams({ selectedMonth: undefined });
+        navigation.setParams({ selectedMonth: undefined }); // Limpa parâmetro da navegação
       }
     });
     return unsubscribe;
   }, [navigation, route.params]);
 
+  // Função para buscar dados do limite do mês selecionado via API
   async function fetchLimit() {
-    setLoading(true);
+    setLoading(true); // Ativa indicador de carregamento
     try {
       const response = await api.get(`/monthly-limits?month=${queryMonth}`);
-      setLimit(response.data || null);
+      setLimit(response.data || null); // Define dados do limite ou null se não encontrar
     } catch (error) {
-      setLimit(null);
+      setLimit(null); // Em caso de erro, define limite como null
     }
-    setLoading(false);
+    setLoading(false); // Desativa indicador de carregamento
   }
 
+  // Função para salvar ou atualizar um limite mensal
   async function handleSubmit() {
     try {
+      // Validação dos campos obrigatórios
       if (!value || !referenceMonth) {
         Alert.alert('Erro', 'Preencha todos os campos');
         return;
       }
 
+      // Verifica se o mês é válido (não pode ser passado)
       if (!isMonthValid(referenceMonth)) {
         Alert.alert('Erro', 'Não é possível cadastrar ou editar limites de meses anteriores');
         return;
       }
 
+      // Obtém ID do limite para operações de edição
       const limitId = limit && (limit.limit ? limit.limit.id : limit.id);
+      
       if (editing && limitId) {
+        // Atualiza limite existente
         await api.put(`/monthly-limits/${limitId}`, {
           value: Number(value),
           referenceMonth,
@@ -105,6 +120,7 @@ export default function MonthlyLimit({ navigation }) {
         Alert.alert('Sucesso', 'Limite mensal atualizado com sucesso');
         setEditing(false);
       } else {
+        // Cria novo limite
         await api.post('/monthly-limits', {
           value: Number(value),
           referenceMonth,
@@ -112,6 +128,8 @@ export default function MonthlyLimit({ navigation }) {
         Alert.alert('Sucesso', 'Limite mensal cadastrado com sucesso');
         setEditing(false);
       }
+      
+      // Limpa formulário e atualiza dados
       setValue('');
       setReferenceMonth(format(new Date(), 'yyyy-MM'));
       setQueryMonth(referenceMonth);
@@ -122,9 +140,11 @@ export default function MonthlyLimit({ navigation }) {
     }
   }
 
+  // Função para excluir um limite mensal
   async function handleDelete() {
-    if (!limit) return;
+    if (!limit) return; // Não faz nada se não há limite
 
+    // Verifica se o mês do limite pode ser editado
     const limitMonth = limit.limit ? limit.limit.referenceMonth : limit.referenceMonth;
     if (!isMonthValid(limitMonth)) {
       Alert.alert('Erro', 'Não é possível excluir limites de meses anteriores');
@@ -133,16 +153,17 @@ export default function MonthlyLimit({ navigation }) {
 
     const limitId = limit && (limit.limit ? limit.limit.id : limit.id);
 
+    // Mostra confirmação antes de excluir
     Alert.alert('Excluir', 'Deseja realmente excluir este limite?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir', style: 'destructive', onPress: async () => {
           try {
-            await api.delete(`/monthly-limits/${limitId}`);
-            setLimit(null);
-            setValue('');
-            setEditing(false);
-            fetchLimit();
+            await api.delete(`/monthly-limits/${limitId}`); // Exclui via API
+            setLimit(null); // Remove limite do estado
+            setValue(''); // Limpa formulário
+            setEditing(false); // Sai do modo de edição
+            fetchLimit(); // Atualiza dados
           } catch {
             Alert.alert('Erro', 'Erro ao excluir limite');
             setEditing(false);
@@ -152,23 +173,28 @@ export default function MonthlyLimit({ navigation }) {
     ]);
   }
 
+  // Função para iniciar edição de um limite existente
   function handleEdit() {
-    if (!limit) return;
+    if (!limit) return; // Não faz nada se não há limite
 
+    // Verifica se o mês do limite pode ser editado
     const limitMonth = limit.limit ? limit.limit.referenceMonth : limit.referenceMonth;
     if (!isMonthValid(limitMonth)) {
       Alert.alert('Erro', 'Não é possível editar limites de meses anteriores');
       return;
     }
 
-    setValue(String((limit.limit ? limit.limit.value : limit.value)));
-    setReferenceMonth((limit.limit ? limit.limit.referenceMonth : limit.referenceMonth).slice(0, 7));
-    setEditing(true);
+    // Preenche formulário com dados do limite existente
+    setValue(String((limit.limit ? limit.limit.value : limit.value))); // Define valor no campo
+    setReferenceMonth((limit.limit ? limit.limit.referenceMonth : limit.referenceMonth).slice(0, 7)); // Define mês no seletor
+    setEditing(true); // Ativa modo de edição
   }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1 }}>
       <Text style={styles.title}>Limite</Text>
+      
+      {/* Formulário para cadastro/edição de limites */}
       <View style={styles.form}>
         <Text style={styles.label}>Valor</Text>
         <TextInput
@@ -177,13 +203,14 @@ export default function MonthlyLimit({ navigation }) {
           value={value}
           onChangeText={setValue}
         />
+        
         <Text style={styles.label}>Mês</Text>
         <View style={styles.pickerBox}>
           <Picker
             selectedValue={referenceMonth}
             onValueChange={(itemValue) => {
-              setReferenceMonth(itemValue);
-              setQueryMonth(itemValue);
+              setReferenceMonth(itemValue); // Define mês para cadastro
+              setQueryMonth(itemValue); // Também atualiza consulta para o mesmo mês
             }}
             style={styles.picker}
             dropdownIconColor="#222"
@@ -193,15 +220,19 @@ export default function MonthlyLimit({ navigation }) {
             ))}
           </Picker>
         </View>
+        
+        {/* Botão para salvar/atualizar limite */}
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>SALVAR</Text>
         </TouchableOpacity>
       </View>
+      
+      {/* Seção de consulta de limites existentes */}
       <Text style={styles.historyTitle}>Consulta</Text>
       <View style={styles.pickerBox}>
         <Picker
           selectedValue={queryMonth}
-          onValueChange={setQueryMonth}
+          onValueChange={setQueryMonth} // Muda apenas o mês de consulta
           style={styles.picker}
           dropdownIconColor="#222"
         >
@@ -210,15 +241,20 @@ export default function MonthlyLimit({ navigation }) {
           ))}
         </Picker>
       </View>
+      
+      {/* Resultado da consulta */}
       {loading ? (
         <Text style={styles.loading}>Carregando...</Text>
       ) : !limit ? (
         <Text style={styles.empty}>Nenhum limite foi encontrado</Text>
       ) : (
         <View style={styles.limitBox}>
+          {/* Exibe informações do limite encontrado */}
           <Text style={styles.limitText}>
             {months.find(m => m.value === queryMonth)?.label}  R${Number((limit.limit ? limit.limit.value : limit.value)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </Text>
+          
+          {/* Botões de ação - só aparecem para meses válidos (atual ou futuros) */}
           {isMonthValid(queryMonth) && (
             <View style={styles.limitActions}>
               <TouchableOpacity style={styles.editBtn} onPress={handleEdit}>
