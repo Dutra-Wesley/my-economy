@@ -150,6 +150,11 @@ export default function Home({ navigation }) {
 
   // Tela vazia - quando não há dados ou limite configurado para o mês
   if (!monthlyData || !monthlyData.limit || !statusCard) {
+    // Verifica se o mês selecionado é passado
+    const now = new Date();
+    const selected = new Date(currentMonth + '-01');
+    const isPastMonth = selected < new Date(now.getFullYear(), now.getMonth(), 1);
+    
     return (
       <View style={[styles.emptyContainer, { paddingBottom: insets.bottom + 20 }]}> 
         {/* Saudação ao usuário */}
@@ -179,10 +184,12 @@ export default function Home({ navigation }) {
             <Text style={styles.emptyText}>Progresso não encontrado</Text>
           </View>
           
-          {/* Botão para começar (ir para tela de limite mensal) */}
-          <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('MonthlyLimit', { selectedMonth: currentMonth })}>
-            <Text style={styles.startButtonText}>COMEÇAR</Text>
-          </TouchableOpacity>
+          {/* Botão para começar (ir para tela de limite mensal) - só aparece para mês atual ou futuro */}
+          {!isPastMonth && (
+            <TouchableOpacity style={styles.startButton} onPress={() => navigation.navigate('MonthlyLimit', { selectedMonth: currentMonth })}>
+              <Text style={styles.startButtonText}>COMEÇAR</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
